@@ -17,6 +17,7 @@ from swingmusic.utils.paths import get_client_files_extensions
 
 from swingmusic.api.plugins import lyrics as lyrics_plugin
 from swingmusic.api.plugins import mixes as mixes_plugin
+from swingmusic.api.plugins import metadata_editor as metadata_editor_plugin
 
 log = logging.getLogger(__name__)
 # # # # # # # # # # # # # # # # # #
@@ -93,6 +94,7 @@ def load_plugins(web: OpenAPI):
         web.register_api(swing_api.plugins.api)
         web.register_api(lyrics_plugin.api)
         web.register_api(mixes_plugin.api)
+        web.register_api(metadata_editor_plugin.api)
 
 
 # # # # # # # # # # #
