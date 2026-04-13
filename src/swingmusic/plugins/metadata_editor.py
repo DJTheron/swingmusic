@@ -1,4 +1,4 @@
-import json
+import base64
 import logging
 import os
 import shutil
@@ -46,8 +46,6 @@ class MetadataEditorPlugin(Plugin):
         track, disc, copyright, comment.
         """
         import mutagen
-        from mutagen.easyid3 import EasyID3
-        from mutagen.id3 import ID3NoHeaderError
 
         filepath = Path(filepath)
         if not filepath.exists():
@@ -177,7 +175,6 @@ class MetadataEditorPlugin(Plugin):
                 pic.mime = "image/jpeg"
                 pic.desc = "Cover"
                 pic.data = image_data
-                import base64
                 audio["metadata_block_picture"] = [
                     base64.b64encode(pic.write()).decode("ascii")
                 ]
@@ -190,7 +187,6 @@ class MetadataEditorPlugin(Plugin):
                 pic.mime = "image/jpeg"
                 pic.desc = "Cover"
                 pic.data = image_data
-                import base64
                 audio["metadata_block_picture"] = [
                     base64.b64encode(pic.write()).decode("ascii")
                 ]
