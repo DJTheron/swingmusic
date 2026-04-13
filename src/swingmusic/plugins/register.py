@@ -16,3 +16,19 @@ def register_plugins():
         )
     except IntegrityError:
         pass
+
+    try:
+        PluginTable.insert_one(
+            {
+                "name": "metadata_editor",
+                "active": False,
+                "settings": {
+                    "beets_auto_apply": False,
+                },
+                "extra": {
+                    "description": "Edit music metadata, upload album art, and auto-fetch via beets",
+                },
+            }
+        )
+    except IntegrityError:
+        pass
