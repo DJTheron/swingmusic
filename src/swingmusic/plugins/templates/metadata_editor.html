@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metadata Editor – Swing Music</title>
+<style>
+:root {
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --surface2: #2a2a2a;
+  --border: #333;
+  --text: #e0e0e0;
+  --text-muted: #888;
+  --accent: #63b3ed;
+  --accent-hover: #4299e1;
+  --danger: #e53e3e;
+  --success: #48bb78;
+  --warning: #ecc94b;
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header h1 .icon { font-size: 1.3rem; }
+
+.back-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.back-link:hover { text-decoration: underline; }
+
+/* Status bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.on { background: var(--success); }
+.status-dot.off { background: var(--danger); }
+.status-dot.unknown { background: var(--text-muted); }
+
+/* Toggle switch */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .slider {
+  position: absolute;
+  inset: 0;
+  background: var(--surface2);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.toggle .slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 2px;
+  top: 2px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle input:checked + .slider {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.toggle input:checked + .slider::before {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+  font-family: var(--font);
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card h3 {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: var(--text-muted);
+}
+
+/* Forms */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-group.full { grid-column: 1 / -1; }
+
+.form-group label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: var(--font);
+  transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.form-group textarea { resize: vertical; min-height: 60px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover:not(:disabled) { background: var(--border); }
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled) { opacity: 0.85; }
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+.btn-success:hover:not(:disabled) { opacity: 0.85; }
+
+.btn-warning {
+  background: var(--warning);
+  color: #000;
+}
+.btn-warning:hover:not(:disabled) { opacity: 0.85; }
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+/* File path input */
+.filepath-group {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.filepath-group .form-group { flex: 1; }
+
+/* Album art upload */
+.art-upload {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.art-preview {
+  width: 160px;
+  height: 160px;
+  background: var(--surface2);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.art-preview:hover { border-color: var(--accent); }
+.art-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.art-preview .placeholder {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding: 10px;
+}
+.art-preview .placeholder .upload-icon { font-size: 2rem; display: block; margin-bottom: 4px; }
+
+.art-controls { flex: 1; min-width: 200px; }
+
+/* Output / log area */
+.output-area {
+  background: #0d0d0d;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #a0aec0;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-top: 12px;
+}
+
+/* Toast notifications */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #fff;
+  max-width: 400px;
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+  animation-fill-mode: forwards;
+}
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+.toast.info { background: var(--accent); }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Settings section */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+
+.setting-info h4 { font-size: 0.9rem; font-weight: 500; }
+.setting-info p { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Disabled overlay */
+.disabled-overlay {
+  position: relative;
+}
+.disabled-overlay::after {
+  content: 'Plugin is disabled. Enable it in the Settings tab.';
+  position: absolute;
+  inset: 0;
+  background: rgba(18,18,18,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  border-radius: var(--radius);
+  z-index: 10;
+}
+
+/* Search/select area */
+.search-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.search-box input { flex: 1; }
+.search-box .btn { white-space: nowrap; }
+
+.item-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 12px;
+}
+.item-row:last-child { border-bottom: none; }
+.item-row:hover { background: var(--surface2); }
+.item-row.selected { background: rgba(99,179,237,0.15); border-left: 3px solid var(--accent); }
+
+.item-info { flex: 1; min-width: 0; }
+.item-title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-subtitle { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1><span class="icon">🎵</span> Metadata Editor</h1>
+    <a href="/" class="back-link">← Back to Swing Music</a>
+  </header>
+
+  <!-- Status Bar -->
+  <div class="status-bar" id="statusBar">
+    <div class="status-item">
+      <span class="status-dot unknown" id="pluginDot"></span>
+      <span>Plugin: <strong id="pluginStatusText">Loading…</strong></span>
+    </div>
+    <div class="status-item">
+      <span class="status-dot unknown" id="beetsDot"></span>
+      <span>Beets: <strong id="beetsStatusText">Loading…</strong></span>
+    </div>
+    <div class="toggle-wrap" style="margin-left:auto;">
+      <span style="font-size:0.85rem;">Enable Plugin</span>
+      <label class="toggle">
+        <input type="checkbox" id="pluginToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tracks" role="tab">🎶 Tracks</button>
+    <button class="tab-btn" data-tab="albums" role="tab">💿 Albums</button>
+    <button class="tab-btn" data-tab="albumart" role="tab">🖼️ Album Art</button>
+    <button class="tab-btn" data-tab="beets" role="tab">🤖 Beets</button>
+    <button class="tab-btn" data-tab="settings" role="tab">⚙️ Settings</button>
+  </div>
+
+  <!-- Tab: Tracks -->
+  <div class="tab-panel active" id="panel-tracks">
+    <div class="card" id="trackCard">
+      <h2>🎶 Edit Track Metadata</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+        Enter the full file path to an audio file and edit its metadata tags.
+      </p>
+
+      <div class="form-group full" style="margin-bottom:16px;">
+        <label for="trackFilepath">File Path</label>
+        <input type="text" id="trackFilepath" placeholder="/path/to/song.mp3">
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="trackTitle">Title</label>
+          <input type="text" id="trackTitle" placeholder="Song title">
+        </div>
+        <div class="form-group">
+          <label for="trackArtist">Artist</label>
+          <input type="text" id="trackArtist" placeholder="Artist name">
+        </div>
+        <div class="form-group">
+          <label for="trackAlbum">Album</label>
+          <input type="text" id="trackAlbum" placeholder="Album name">
+        </div>
+        <div class="form-group">
+          <label for="trackAlbumArtist">Album Artist</label>
+          <input type="text" id="trackAlbumArtist" placeholder="Album artist">
+        </div>
+        <div class="form-group">
+          <label for="trackGenre">Genre</label>
+          <input type="text" id="trackGenre" placeholder="Genre">
+        </div>
+        <div class="form-group">
+          <label for="trackDate">Date / Year</label>
+          <input type="text" id="trackDate" placeholder="2024">
+        </div>
+        <div class="form-group">
+          <label for="trackNumber">Track Number</label>
+          <input type="text" id="trackNumber" placeholder="3 or 3/12">
+        </div>
+        <div class="form-group">
+          <label for="trackDisc">Disc Number</label>
+          <input type="text" id="trackDisc" placeholder="1 or 1/2">
+        </div>
+        <div class="form-group">
+          <label for="trackCopyright">Copyright</label>
+          <input type="text" id="trackCopyright" placeholder="© 2024">
+        </div>
+        <div class="form-group full">
+          <label for="trackComment">Comment</label>
+          <textarea id="trackComment" placeholder="Optional comment"></textarea>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="saveTrackBtn" onclick="saveTrackMetadata()">
+          💾 Save Metadata
+        </button>
+        <button class="btn btn-secondary" id="clearTrackBtn" onclick="clearTrackForm()">
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Albums -->
+  <div class="tab-panel" id="panel-albums">
+    <div class="card" id="albumCard">
+      <h2>💿 Edit Album Metadata</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+        Search for an album and batch-update metadata for all its tracks.
+      </p>
+
+      <div class="search-box">
+        <input type="text" id="albumSearch" placeholder="Search albums…" onkeyup="filterAlbums()">
+      </div>
+
+      <div class="item-list" id="albumList">
+        <div class="empty-state">
+          <div class="empty-icon">💿</div>
+          <p>Loading albums…</p>
+        </div>
+      </div>
+
+      <div id="albumEditSection" style="display:none;">
+        <h3>Editing: <span id="albumEditName" style="color:var(--accent);"></span></h3>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="albumAlbumName">Album Name</label>
+            <input type="text" id="albumAlbumName" placeholder="Album name">
+          </div>
+          <div class="form-group">
+            <label for="albumAlbumArtist">Album Artist</label>
+            <input type="text" id="albumAlbumArtist" placeholder="Album artist">
+          </div>
+          <div class="form-group">
+            <label for="albumGenre">Genre</label>
+            <input type="text" id="albumGenre" placeholder="Genre">
+          </div>
+          <div class="form-group">
+            <label for="albumDate">Date / Year</label>
+            <input type="text" id="albumDate" placeholder="2024">
+          </div>
+          <div class="form-group full">
+            <label for="albumCopyright">Copyright</label>
+            <input type="text" id="albumCopyright" placeholder="© 2024">
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveAlbumMetadata()">
+            💾 Save Album Metadata
+          </button>
+          <button class="btn btn-secondary" onclick="deselectAlbum()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Album Art -->
+  <div class="tab-panel" id="panel-albumart">
+    <div class="card" id="artCard">
+      <h2>🖼️ Upload Album Art</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+        Embed album art directly into an audio file. Supports JPEG and PNG (max 10 MB).
+      </p>
+
+      <div class="form-group full" style="margin-bottom:16px;">
+        <label for="artFilepath">File Path</label>
+        <input type="text" id="artFilepath" placeholder="/path/to/song.mp3">
+      </div>
+
+      <div class="art-upload">
+        <div class="art-preview" id="artPreview" onclick="document.getElementById('artFileInput').click()">
+          <div class="placeholder">
+            <span class="upload-icon">📁</span>
+            Click to select image
+          </div>
+        </div>
+        <input type="file" id="artFileInput" accept="image/jpeg,image/png" style="display:none" onchange="previewArt(event)">
+
+        <div class="art-controls">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+            Select a JPEG or PNG image to embed as album cover art. The image will be embedded directly in the audio file's metadata.
+          </p>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="uploadArtBtn" onclick="uploadAlbumArt()" disabled>
+              🖼️ Embed Art
+            </button>
+            <button class="btn btn-secondary" onclick="clearArtForm()">
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Beets -->
+  <div class="tab-panel" id="panel-beets">
+    <div class="card" id="beetsCard">
+      <h2>🤖 Beets Metadata Fetcher</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+        Use <a href="https://beets.io" target="_blank" style="color:var(--accent);">beets</a> to automatically identify and tag your music files.
+      </p>
+
+      <div id="beetsNotInstalled" style="display:none;">
+        <div class="empty-state">
+          <div class="empty-icon">⚠️</div>
+          <p>Beets is not installed on the server.</p>
+          <p style="font-size:0.8rem; margin-top:8px;">Install it with: <code style="background:var(--surface2); padding:2px 6px; border-radius:4px;">pip install beets</code></p>
+        </div>
+      </div>
+
+      <div id="beetsAvailable">
+        <!-- Single Track -->
+        <div style="margin-bottom:24px;">
+          <h3>Single Track</h3>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="beetsTrackPath">File Path</label>
+            <input type="text" id="beetsTrackPath" placeholder="/path/to/song.mp3">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="beetsFetchTrack()">
+              🔍 Preview Metadata
+            </button>
+            <button class="btn btn-warning" onclick="beetsAutoTrack()">
+              ⚡ Auto-Apply
+            </button>
+          </div>
+        </div>
+
+        <!-- Album Folder -->
+        <div style="margin-bottom:16px;">
+          <h3>Album Folder</h3>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="beetsAlbumPath">Folder Path</label>
+            <input type="text" id="beetsAlbumPath" placeholder="/path/to/album/folder">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="beetsFetchAlbum()">
+              🔍 Preview Metadata
+            </button>
+            <button class="btn btn-warning" onclick="beetsAutoAlbum()">
+              ⚡ Auto-Apply Album
+            </button>
+          </div>
+        </div>
+
+        <!-- Output -->
+        <div id="beetsOutputSection" style="display:none;">
+          <h3>Beets Output</h3>
+          <div class="output-area" id="beetsOutput"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Settings -->
+  <div class="tab-panel" id="panel-settings">
+    <div class="card">
+      <h2>⚙️ Plugin Settings</h2>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Enable Metadata Editor</h4>
+          <p>Allow editing of music file metadata, uploading album art, and beets integration.</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="settingsPluginToggle" onchange="togglePlugin(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Beets Auto-Apply</h4>
+          <p>When enabled, the auto button applies beets' best match without prompting for confirmation.</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="beetsAutoApply" onchange="updateSettings()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ℹ️ About</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.8;">
+        The Metadata Editor plugin lets you manually edit audio file tags (title, artist, album, genre, etc.),
+        upload and embed album art, and use <strong>beets</strong> to auto-fetch and apply metadata from online databases.
+        <br><br>
+        <strong>Supported formats:</strong> MP3, FLAC, OGG Vorbis, Opus, M4A/MP4/AAC
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ---------------------------------------------------------------
+// State
+// ---------------------------------------------------------------
+let pluginActive = false;
+let beetsAvailable = false;
+let selectedAlbum = null;
+let allAlbums = [];
+let artBase64 = null;
+
+const API_BASE = window.location.origin;
+
+// ---------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
+async function apiFetch(path, options = {}) {
+  const url = API_BASE + path;
+  const headers = options.headers || {};
+  headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+
+  // Try to get JWT from cookie
+  const token = getCookie('access_token_cookie');
+  if (token) {
+    headers['Authorization'] = 'Bearer ' + token;
+  }
+
+  const resp = await fetch(url, { ...options, headers, credentials: 'include' });
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(data.error || data.message || `HTTP ${resp.status}`);
+  }
+  return data;
+}
+
+function toast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = message;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function setLoading(btn, loading) {
+  if (loading) {
+    btn.dataset.origHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Working…';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+    btn.disabled = false;
+  }
+}
+
+// ---------------------------------------------------------------
+// Tabs
+// ---------------------------------------------------------------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------------------------------------------------------------
+// Plugin status
+// ---------------------------------------------------------------
+async function loadPluginStatus() {
+  try {
+    const data = await apiFetch('/plugins/');
+    const plugins = data.plugins || [];
+    const metaPlugin = plugins.find(p => p.name === 'metadata_editor');
+
+    if (metaPlugin) {
+      pluginActive = metaPlugin.active;
+      document.getElementById('pluginToggle').checked = pluginActive;
+      document.getElementById('settingsPluginToggle').checked = pluginActive;
+      document.getElementById('pluginDot').className = 'status-dot ' + (pluginActive ? 'on' : 'off');
+      document.getElementById('pluginStatusText').textContent = pluginActive ? 'Enabled' : 'Disabled';
+
+      // Load settings
+      const settings = metaPlugin.settings || {};
+      document.getElementById('beetsAutoApply').checked = !!settings.beets_auto_apply;
+    }
+    updateDisabledState();
+  } catch (e) {
+    document.getElementById('pluginStatusText').textContent = 'Error';
+    console.error('Failed to load plugin status:', e);
+  }
+}
+
+async function loadBeetsStatus() {
+  try {
+    const data = await apiFetch('/plugins/metadata_editor/beets/status');
+    const info = data.data || {};
+    beetsAvailable = info.available;
+    document.getElementById('beetsDot').className = 'status-dot ' + (beetsAvailable ? 'on' : 'off');
+    document.getElementById('beetsStatusText').textContent = beetsAvailable
+      ? 'Available' + (info.version ? ' (' + info.version + ')' : '')
+      : 'Not installed';
+
+    document.getElementById('beetsNotInstalled').style.display = beetsAvailable ? 'none' : 'block';
+    document.getElementById('beetsAvailable').style.display = beetsAvailable ? 'block' : 'none';
+  } catch {
+    document.getElementById('beetsStatusText').textContent = 'Unknown';
+    // If plugin is disabled, beets status will fail - that's OK
+  }
+}
+
+function updateDisabledState() {
+  const panels = ['trackCard', 'albumCard', 'artCard', 'beetsCard'];
+  panels.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (pluginActive) {
+      el.classList.remove('disabled-overlay');
+    } else {
+      el.classList.add('disabled-overlay');
+    }
+  });
+}
+
+// ---------------------------------------------------------------
+// Toggle plugin
+// ---------------------------------------------------------------
+async function togglePlugin(active) {
+  try {
+    await apiFetch('/plugins/setactive', {
+      method: 'POST',
+      body: JSON.stringify({ plugin: 'metadata_editor', active })
+    });
+    pluginActive = active;
+    document.getElementById('pluginToggle').checked = active;
+    document.getElementById('settingsPluginToggle').checked = active;
+    document.getElementById('pluginDot').className = 'status-dot ' + (active ? 'on' : 'off');
+    document.getElementById('pluginStatusText').textContent = active ? 'Enabled' : 'Disabled';
+    updateDisabledState();
+    toast(active ? 'Plugin enabled' : 'Plugin disabled', 'success');
+    if (active) loadBeetsStatus();
+  } catch (e) {
+    toast('Failed to toggle plugin: ' + e.message, 'error');
+    // Revert toggles
+    document.getElementById('pluginToggle').checked = pluginActive;
+    document.getElementById('settingsPluginToggle').checked = pluginActive;
+  }
+}
+
+document.getElementById('pluginToggle').addEventListener('change', function() {
+  togglePlugin(this.checked);
+});
+
+// ---------------------------------------------------------------
+// Track metadata
+// ---------------------------------------------------------------
+async function saveTrackMetadata() {
+  const filepath = document.getElementById('trackFilepath').value.trim();
+  if (!filepath) {
+    toast('Please enter a file path', 'error');
+    return;
+  }
+
+  const body = { filepath };
+  const fields = ['title', 'artist', 'album', 'albumartist', 'genre', 'date', 'copyright', 'comment'];
+  const idMap = {
+    title: 'trackTitle', artist: 'trackArtist', album: 'trackAlbum',
+    albumartist: 'trackAlbumArtist', genre: 'trackGenre', date: 'trackDate',
+    copyright: 'trackCopyright', comment: 'trackComment'
+  };
+
+  fields.forEach(f => {
+    const val = document.getElementById(idMap[f]).value.trim();
+    if (val) body[f] = val;
+  });
+
+  // Track number and disc
+  const track = document.getElementById('trackNumber').value.trim();
+  const disc = document.getElementById('trackDisc').value.trim();
+  if (track) body.track = track;
+  if (disc) body.disc = disc;
+
+  if (Object.keys(body).length <= 1) {
+    toast('Please fill in at least one metadata field', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('saveTrackBtn');
+  setLoading(btn, true);
+  try {
+    await apiFetch('/plugins/metadata_editor/track/update', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    toast('Track metadata saved successfully!', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+function clearTrackForm() {
+  ['trackFilepath', 'trackTitle', 'trackArtist', 'trackAlbum', 'trackAlbumArtist',
+   'trackGenre', 'trackDate', 'trackNumber', 'trackDisc', 'trackCopyright', 'trackComment'
+  ].forEach(id => { document.getElementById(id).value = ''; });
+}
+
+// ---------------------------------------------------------------
+// Albums
+// ---------------------------------------------------------------
+async function loadAlbums() {
+  try {
+    const data = await apiFetch('/getall/albums?start=0&limit=5000');
+    allAlbums = data.items || data.albums || [];
+    renderAlbumList(allAlbums);
+  } catch (e) {
+    document.getElementById('albumList').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load albums</p></div>';
+  }
+}
+
+function renderAlbumList(albums) {
+  const container = document.getElementById('albumList');
+  if (!albums.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">💿</div><p>No albums found</p></div>';
+    return;
+  }
+
+  container.innerHTML = albums.slice(0, 100).map(a => {
+    const hash = a.albumhash || a.hash || '';
+    const title = a.title || a.album || a.name || 'Unknown Album';
+    const artists = (a.albumartists || []).map(ar => ar.name || ar).join(', ') || a.albumartist || a.artist || '';
+    const isSelected = selectedAlbum && (selectedAlbum.albumhash || selectedAlbum.hash) === hash;
+    return `<div class="item-row${isSelected ? ' selected' : ''}" onclick="selectAlbum('${hash}')">
+      <div class="item-info">
+        <div class="item-title">${escapeHtml(title)}</div>
+        <div class="item-subtitle">${escapeHtml(artists)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (albums.length > 100) {
+    container.innerHTML += `<div style="padding:8px 12px; font-size:0.8rem; color:var(--text-muted); text-align:center;">
+      Showing 100 of ${albums.length} albums. Use search to filter.</div>`;
+  }
+}
+
+function filterAlbums() {
+  const q = document.getElementById('albumSearch').value.toLowerCase().trim();
+  if (!q) {
+    renderAlbumList(allAlbums);
+    return;
+  }
+  const filtered = allAlbums.filter(a => {
+    const title = (a.title || a.album || a.name || '').toLowerCase();
+    const artists = ((a.albumartists || []).map(ar => ar.name || ar).join(' ') || a.albumartist || a.artist || '').toLowerCase();
+    return title.includes(q) || artists.includes(q);
+  });
+  renderAlbumList(filtered);
+}
+
+function selectAlbum(hash) {
+  selectedAlbum = allAlbums.find(a => (a.albumhash || a.hash) === hash);
+  if (!selectedAlbum) return;
+
+  const title = selectedAlbum.title || selectedAlbum.album || selectedAlbum.name || '';
+  document.getElementById('albumEditName').textContent = title;
+  document.getElementById('albumAlbumName').value = title;
+  document.getElementById('albumAlbumArtist').value =
+    (selectedAlbum.albumartists || []).map(ar => ar.name || ar).join(', ') || selectedAlbum.albumartist || '';
+  document.getElementById('albumGenre').value = selectedAlbum.genre || '';
+  document.getElementById('albumDate').value = selectedAlbum.date || selectedAlbum.year || '';
+  document.getElementById('albumCopyright').value = selectedAlbum.copyright || '';
+  document.getElementById('albumEditSection').style.display = 'block';
+
+  // Update selected visual
+  document.querySelectorAll('#albumList .item-row').forEach(row => row.classList.remove('selected'));
+  // re-render to show selection
+  filterAlbums();
+}
+
+function deselectAlbum() {
+  selectedAlbum = null;
+  document.getElementById('albumEditSection').style.display = 'none';
+  document.querySelectorAll('#albumList .item-row').forEach(row => row.classList.remove('selected'));
+}
+
+async function saveAlbumMetadata() {
+  if (!selectedAlbum) {
+    toast('Please select an album first', 'error');
+    return;
+  }
+
+  const albumhash = selectedAlbum.albumhash || selectedAlbum.hash;
+  const body = { albumhash };
+
+  const album = document.getElementById('albumAlbumName').value.trim();
+  const albumartist = document.getElementById('albumAlbumArtist').value.trim();
+  const genre = document.getElementById('albumGenre').value.trim();
+  const date = document.getElementById('albumDate').value.trim();
+  const copyright = document.getElementById('albumCopyright').value.trim();
+
+  if (album) body.album = album;
+  if (albumartist) body.albumartist = albumartist;
+  if (genre) body.genre = genre;
+  if (date) body.date = date;
+  if (copyright) body.copyright = copyright;
+
+  if (Object.keys(body).length <= 1) {
+    toast('Please fill in at least one field', 'error');
+    return;
+  }
+
+  try {
+    const data = await apiFetch('/plugins/metadata_editor/album/update', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    const result = data.data || {};
+    toast(`Album updated: ${result.updated}/${result.total} tracks`, 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+// ---------------------------------------------------------------
+// Album art
+// ---------------------------------------------------------------
+function previewArt(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 10 * 1024 * 1024) {
+    toast('Image too large (max 10 MB)', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Full = e.target.result;
+    // Remove data URL prefix
+    artBase64 = base64Full.split(',')[1];
+
+    document.getElementById('artPreview').innerHTML =
+      '<img src="' + base64Full + '" alt="Album art preview">';
+    document.getElementById('uploadArtBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadAlbumArt() {
+  const filepath = document.getElementById('artFilepath').value.trim();
+  if (!filepath) {
+    toast('Please enter a file path', 'error');
+    return;
+  }
+  if (!artBase64) {
+    toast('Please select an image', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('uploadArtBtn');
+  setLoading(btn, true);
+  try {
+    await apiFetch('/plugins/metadata_editor/track/art/upload', {
+      method: 'POST',
+      body: JSON.stringify({ filepath, image_base64: artBase64 })
+    });
+    toast('Album art embedded successfully!', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+function clearArtForm() {
+  document.getElementById('artFilepath').value = '';
+  artBase64 = null;
+  document.getElementById('artPreview').innerHTML =
+    '<div class="placeholder"><span class="upload-icon">📁</span>Click to select image</div>';
+  document.getElementById('uploadArtBtn').disabled = true;
+  document.getElementById('artFileInput').value = '';
+}
+
+// ---------------------------------------------------------------
+// Beets
+// ---------------------------------------------------------------
+function showBeetsOutput(text) {
+  document.getElementById('beetsOutputSection').style.display = 'block';
+  document.getElementById('beetsOutput').textContent = text || '(no output)';
+}
+
+async function beetsFetchTrack() {
+  const filepath = document.getElementById('beetsTrackPath').value.trim();
+  if (!filepath) { toast('Enter a file path', 'error'); return; }
+
+  try {
+    toast('Fetching metadata preview…', 'info');
+    const data = await apiFetch('/plugins/metadata_editor/track/fetch', {
+      method: 'POST',
+      body: JSON.stringify({ filepath })
+    });
+    showBeetsOutput(data.data?.beets_output);
+    toast('Preview complete', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function beetsAutoTrack() {
+  const filepath = document.getElementById('beetsTrackPath').value.trim();
+  if (!filepath) { toast('Enter a file path', 'error'); return; }
+
+  if (!confirm('This will automatically write beets metadata to the file. Continue?')) return;
+
+  try {
+    toast('Auto-applying metadata…', 'info');
+    const data = await apiFetch('/plugins/metadata_editor/track/auto', {
+      method: 'POST',
+      body: JSON.stringify({ filepath })
+    });
+    showBeetsOutput(data.data?.beets_output);
+    toast('Auto-apply complete!', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function beetsFetchAlbum() {
+  const folder = document.getElementById('beetsAlbumPath').value.trim();
+  if (!folder) { toast('Enter a folder path', 'error'); return; }
+
+  try {
+    toast('Fetching album metadata preview…', 'info');
+    const data = await apiFetch('/plugins/metadata_editor/album/fetch', {
+      method: 'POST',
+      body: JSON.stringify({ folder })
+    });
+    showBeetsOutput(data.data?.beets_output);
+    toast('Preview complete', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function beetsAutoAlbum() {
+  const folder = document.getElementById('beetsAlbumPath').value.trim();
+  if (!folder) { toast('Enter a folder path', 'error'); return; }
+
+  if (!confirm('This will automatically write beets metadata to all files in the folder. Continue?')) return;
+
+  try {
+    toast('Auto-applying album metadata…', 'info');
+    const data = await apiFetch('/plugins/metadata_editor/album/auto', {
+      method: 'POST',
+      body: JSON.stringify({ folder })
+    });
+    showBeetsOutput(data.data?.beets_output);
+    toast('Auto-apply complete!', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+// ---------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------
+async function updateSettings() {
+  const beetsAutoApply = document.getElementById('beetsAutoApply').checked;
+
+  try {
+    await apiFetch('/plugins/settings', {
+      method: 'POST',
+      body: JSON.stringify({
+        plugin: 'metadata_editor',
+        settings: { beets_auto_apply: beetsAutoApply }
+      })
+    });
+    toast('Settings saved', 'success');
+  } catch (e) {
+    toast('Failed to save settings: ' + e.message, 'error');
+  }
+}
+
+// ---------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------
+async function init() {
+  await loadPluginStatus();
+  loadBeetsStatus();
+  loadAlbums();
+}
+
+init();
+</script>
+</body>
+</html>

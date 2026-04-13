@@ -1,8 +1,9 @@
 import base64
 import logging
+from pathlib import Path
 from typing import Optional
 
-from flask import request
+from flask import request, send_from_directory
 from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
@@ -23,6 +24,16 @@ api = APIBlueprint(
     url_prefix="/plugins/metadata_editor",
     abp_tags=[bp_tag],
 )
+
+_TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent / "plugins" / "templates"
+
+
+@api.get("/ui")
+def metadata_editor_ui():
+    """
+    Serve the Metadata Editor web UI.
+    """
+    return send_from_directory(str(_TEMPLATE_DIR), "metadata_editor.html")
 
 
 # ------------------------------------------------------------------

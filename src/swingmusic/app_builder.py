@@ -126,6 +126,7 @@ def check_auth_need() -> bool:
         "/auth/logout",
         "/auth/refresh",
         "/docs",
+        "/plugins/metadata_editor/ui",
     }
     files = {
         ".webp",
